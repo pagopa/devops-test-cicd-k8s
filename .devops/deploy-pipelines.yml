@@ -133,9 +133,10 @@ stages:
                 inputs:
                   targetType: 'inline'
                   script: |
-                    test -f helm/values-beta.yaml && yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" helm/values-beta.yaml
-                    test -f helm/values-prod01.yaml yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" helm/values-prod01.yaml
-                    test -f helm/values-prod02.yaml yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" helm/values-prod02.yaml
+                    for i in helm/values-*.yaml; do
+                      [ -f "$i" ] || break
+                      yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" $i
+                    done
           - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
               - script: |
                   echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
