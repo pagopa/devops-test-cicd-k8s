@@ -145,13 +145,15 @@ stages:
   # Build
   - stage: Build
     dependsOn: Release
+    variables:
+      next_version: $[ dependencies.Release.outputs['next_version.value'] ]
     jobs:
       - job: 'Build'
         steps:
           - task: Docker@2
             displayName: 'docker login'
             inputs:
-              containerRegistry: 'io-p-payments-acr-docker-registry-prod'
+              containerRegistry: '$(CONTAINER_REGISTRY_SERVICE_CONN_PROD)'
               command: 'login'
           - task: Bash@3
             displayName: 'docker build and push (force)'
@@ -161,10 +163,10 @@ stages:
               script: |
                 echo "[INFO] the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
                 docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId) .
-                docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion.value) .
+                docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion) .
                 docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest .
                 docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId)
-                docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion.value)
+                docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion)
                 docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest
           - task: Bash@3
             displayName: 'docker build and push'
@@ -173,16 +175,16 @@ stages:
               targetType: 'inline'
               script: |
                 # docker will return 0 on success or 1 on failure.
-                docker manifest inspect $(CONTAINER_REGISTRY_NAME)/$(DOCKER_IMAGE_NAME):$(nextversion.value) > /dev/null
+                docker manifest inspect $(CONTAINER_REGISTRY_NAME)/$(DOCKER_IMAGE_NAME):$(nextversion) > /dev/null
                 if [ $? -eq 0 ]; then
                   echo "[INFO] docker image already exists in the registry, skip build and push"
                 else
                   echo "[INFO] docker image does not exist in the registry, start build and push"
                   docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId) .
-                  docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion.value) .
+                  docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion) .
                   docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest .
                   docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId)
-                  docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion.value)
+                  docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(nextversion)
                   docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest
                 fi
 
