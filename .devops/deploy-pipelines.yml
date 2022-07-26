@@ -147,7 +147,6 @@ stages:
     dependsOn: Release
     variables:
       next_version: $[ stageDependencies.Release.make_release.outputs['next_version.value'] ]
-      varFromStageA: $[ stageDependencies.STAGE_X.STAGE_X_JOB_A.outputs['ValidateVar.VarKey'] ]
     jobs:
       - job: 'Build'
         steps:
@@ -156,13 +155,13 @@ stages:
             inputs:
               containerRegistry: '$(CONTAINER_REGISTRY_SERVICE_CONN_PROD)'
               command: 'login'
-          - task: Bash@3
-            displayName: 'test'
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo $(next_version)
-                exit 1
+          # - task: Bash@3
+          #   displayName: 'test'
+          #   inputs:
+          #     targetType: 'inline'
+          #     script: |
+          #       echo $(next_version)
+          #       exit 1
           - task: Bash@3
             displayName: 'docker build and push (force)'
             condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, True))
