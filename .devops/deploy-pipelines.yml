@@ -161,7 +161,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                echo $next_version
+                echo $(next_version)
                 exit 1
           - task: Bash@3
             displayName: 'docker build and push (force)'
