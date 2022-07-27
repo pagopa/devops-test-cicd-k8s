@@ -182,7 +182,7 @@ stages:
               targetType: 'inline'
               script: |
                 # docker will return 0 on success or 1 on failure.
-                docker manifest inspect $(CONTAINER_REGISTRY_NAME)/$(DOCKER_IMAGE_NAME):$(next_version) > /dev/null
+                docker manifest inspect $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version) > /dev/null
                 if [ $? -eq 0 ]; then
                   echo "[INFO] docker image already exists in the registry, skip build and push"
                 else
