@@ -89,7 +89,7 @@ stages:
                 gitEmail: $(GIT_EMAIL)
                 gitUsername: $(GIT_USERNAME)
                 gitHubConnection: $(GITHUB_CONNECTION)
-          - ${{ if and(startsWith(variables['Build.SourceBranch'], 'refs/tags'),endsWith(variables['Build.SourceBranch'], '-RELEASE') }}:
+          - ${{ if and(startsWith(variables['Build.SourceBranch'], 'refs/tags'), endsWith(variables['Build.SourceBranch'], '-RELEASE')) }}:
               - script: |
                   echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
                 displayName: 'Skip release bundle'
