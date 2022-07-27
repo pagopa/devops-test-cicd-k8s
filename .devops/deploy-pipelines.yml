@@ -82,6 +82,9 @@ stages:
       - job: make_release
         steps:
           - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+            - checkout: self
+              displayName: 'Checkout'
+              persistCredentials: true
             - template: templates/maven-github-release/template.yaml@pagopaCommons
               parameters:
                 semver: '${{ parameters.RELEASE_SEMVER }}'
