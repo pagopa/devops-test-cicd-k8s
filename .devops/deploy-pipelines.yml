@@ -51,13 +51,13 @@ parameters:
 trigger: none
 pr: none
 
-# resources:
-#   repositories:
-#     - repository: pagopaCommons
-#       type: github
-#       name: pagopa/azure-pipeline-templates
-#       ref: refs/tags/v19
-#       endpoint: 'io-azure-devops-github-ro'
+resources:
+  repositories:
+    - repository: pagopaCommons
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: add-maven-github-release
+      endpoint: 'io-azure-devops-github-ro'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -82,61 +82,67 @@ stages:
       - job: make_release
         steps:
           - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-              - task: Bash@3
-                displayName: Get current version
-                name: current_version
-                inputs:
-                  targetType: 'inline'
-                  script: |
-                    current_version=$(cat pom.xml | grep '^.*<version>' | sed -n 2p | awk -F'[><]' '{print $3}')
-                    echo "[INFO] Current Version: $current_version"
-                    echo "##vso[task.setvariable variable=value;isOutput=true]$current_version"
-              - task: Bash@3
-                displayName: Get next version
-                name: next_version
-                inputs:
-                  targetType: 'inline'
-                  script: |
-                    version_patch=$(echo $(current_version.value) | grep -Eo "[0-9]+$")
-                    version_minor=$(echo $(current_version.value) | grep -Eo "[0-9]+\.[0-9]+$" | grep -Eo "^[0-9]+")
-                    version_major=$(echo $(current_version.value) | grep -Eo "^[0-9]+")
+            - template: templates/maven-github-release/template.yaml@pagopaCommons
+              parameters:
+                semver: '${{ parameters.RELEASE_SEMVER }}'
+                gitEmail: $(GIT_EMAIL)
+                gitUsername: $(GIT_USERNAME)
+                gitHubConnection: $(GITHUB_CONNECTION)
+              # - task: Bash@3
+              #   displayName: Get current version
+              #   name: current_version
+              #   inputs:
+              #     targetType: 'inline'
+              #     script: |
+              #       current_version=$(cat pom.xml | grep '^.*<version>' | sed -n 2p | awk -F'[><]' '{print $3}')
+              #       echo "[INFO] Current Version: $current_version"
+              #       echo "##vso[task.setvariable variable=value;isOutput=true]$current_version"
+              # - task: Bash@3
+              #   displayName: Get next version
+              #   name: next_version
+              #   inputs:
+              #     targetType: 'inline'
+              #     script: |
+              #       version_patch=$(echo $(current_version.value) | grep -Eo "[0-9]+$")
+              #       version_minor=$(echo $(current_version.value) | grep -Eo "[0-9]+\.[0-9]+$" | grep -Eo "^[0-9]+")
+              #       version_major=$(echo $(current_version.value) | grep -Eo "^[0-9]+")
 
-                    echo "[INFO] Current Version: ${version_major}.${version_minor}.${version_patch}"
+              #       echo "[INFO] Current Version: ${version_major}.${version_minor}.${version_patch}"
 
-                    if [ ${{ parameters.RELEASE_SEMVER }} = patch ];
-                    then
-                      let "version_patch=version_patch+1"
-                    elif [ ${{ parameters.RELEASE_SEMVER }} = minor ];
-                    then
-                      version_patch=0
-                      let "version_minor=version_minor+1"
-                    elif [ ${{ parameters.RELEASE_SEMVER }} = major ];
-                    then
-                      version_patch=0
-                      version_minor=0
-                      let "version_major=version_major+1"
-                    fi
+              #       if [ ${{ parameters.RELEASE_SEMVER }} = patch ];
+              #       then
+              #         let "version_patch=version_patch+1"
+              #       elif [ ${{ parameters.RELEASE_SEMVER }} = minor ];
+              #       then
+              #         version_patch=0
+              #         let "version_minor=version_minor+1"
+              #       elif [ ${{ parameters.RELEASE_SEMVER }} = major ];
+              #       then
+              #         version_patch=0
+              #         version_minor=0
+              #         let "version_major=version_major+1"
+              #       fi
                     
-                    next_version="${version_major}.${version_minor}.${version_patch}"
-                    echo "[INFO] Next Version: $next_version"
-                    echo "##vso[task.setvariable variable=value;isOutput=true]$next_version"
-              - task: Bash@3
-                displayName: Update Version Maven
-                name: update_version_maven
-                inputs:
-                  targetType: 'inline'
-                  script: |
-                    mvn versions:set -DnewVersion=$(next_version.value) --quiet
-              - task: Bash@3
-                displayName: Update Version Helm
-                name: update_version_helm
-                inputs:
-                  targetType: 'inline'
-                  script: |
-                    for i in helm/values-*.yaml; do
-                      [ -f "$i" ] || break
-                      yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" $i
-                    done
+              #       next_version="${version_major}.${version_minor}.${version_patch}"
+              #       echo "[INFO] Next Version: $next_version"
+              #       echo "##vso[task.setvariable variable=value;isOutput=true]$next_version"
+              # - task: Bash@3
+              #   displayName: Update Version Maven
+              #   name: update_version_maven
+              #   inputs:
+              #     targetType: 'inline'
+              #     script: |
+              #       mvn versions:set -DnewVersion=$(next_version.value) --quiet
+              # - task: Bash@3
+              #   displayName: Update Version Helm
+              #   name: update_version_helm
+              #   inputs:
+              #     targetType: 'inline'
+              #     script: |
+              #       for i in helm/values-*.yaml; do
+              #         [ -f "$i" ] || break
+              #         yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" $i
+              #       done
           - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
               - script: |
                   echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
