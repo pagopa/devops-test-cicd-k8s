@@ -26,7 +26,7 @@ parameters:
       - False
       - True
   - name: 'SKIP_RELEASE'
-    displayName: 'Force the existing docker image to be replaced'
+    displayName: 'Skip release'
     type: boolean
     default: False
     values:
