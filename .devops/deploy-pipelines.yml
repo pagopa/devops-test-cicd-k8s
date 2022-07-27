@@ -3,7 +3,7 @@
 variables:
   NAMESPACE: '$(TF_NAMESPACE)'
   DOCKER_IMAGE_NAME: '$(TF_DOCKER_IMAGE_NAME)'
-  CONTAINER_REGISTRY_NAME_PROD: '$(TF_CONTAINER_REGISTRY_NAME_PROD)'
+  CONTAINER_REGISTRY_FQDN_PROD: '$(TF_CONTAINER_REGISTRY_FQDN_PROD)'
   CONTAINER_REGISTRY_SERVICE_CONN_PROD: '$(TF_CONTAINER_REGISTRY_SERVICE_CONN_PROD)'
   KUBERNETES_SERVICE_CONN_WEU_BETA: '$(TF_KUBERNETES_SERVICE_CONN_WEU_BETA)'
   KUBERNETES_SERVICE_CONN_WEU_PROD_01: '$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_01)'
@@ -169,12 +169,12 @@ stages:
               targetType: 'inline'
               script: |
                 echo "[INFO] the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
-                docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId) .
-                docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(next_version) .
-                docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest .
-                docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId)
-                docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(next_version)
-                docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest
+                docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId) .
+                docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version) .
+                docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest .
+                docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId)
+                docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version)
+                docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest
           - task: Bash@3
             displayName: 'docker build and push'
             condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, False))
@@ -187,12 +187,12 @@ stages:
                   echo "[INFO] docker image already exists in the registry, skip build and push"
                 else
                   echo "[INFO] docker image does not exist in the registry, start build and push"
-                  docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId) .
-                  docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(next_version) .
-                  docker build -t $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest .
-                  docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId)
-                  docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):$(next_version)
-                  docker push $(CONTAINER_REGISTRY_NAME_PROD)/$(DOCKER_IMAGE_NAME):latest
+                  docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId) .
+                  docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version) .
+                  docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest .
+                  docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId)
+                  docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version)
+                  docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest
                 fi
 
   # - stage: 'Serving_helm'
