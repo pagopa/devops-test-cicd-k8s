@@ -45,6 +45,18 @@ jobs:
         acs-report-enable: true
         fail-build: true
         severity-cutoff: "high"
+    - name: Comment
+      uses: actions/github-script@v5
+      if: failure()
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '👋 Thanks for reporting!'
+          })
     - name: Upload Anchore Scan Report
       uses: github/codeql-action/upload-sarif@v2
       if: always()
