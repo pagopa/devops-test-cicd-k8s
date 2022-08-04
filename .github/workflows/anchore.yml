@@ -24,6 +24,9 @@ on:
 permissions:
   contents: read
 
+env:
+  DOCKERFILE: Dockerfile
+
 jobs:
   Anchore-Build-Scan:
     permissions:
@@ -35,7 +38,7 @@ jobs:
     - name: Checkout the code
       uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+      run: docker build . --file ${{ env.DOCKERFILE }} --tag localbuild/testimage:latest
     - name: Run the Anchore scan action itself with GitHub Advanced Security code scanning integration enabled
       uses: anchore/scan-action@v3
       with:
