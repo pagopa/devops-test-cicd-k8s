@@ -36,6 +36,17 @@ jobs:
     steps:
     - name: Checkout the code
       uses: actions/checkout@v3
+    - name: Comment
+      uses: actions/github-script@v5
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          github.rest.pulls.createComment({
+            issue_number: context.pull.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '👋 Thanks for reporting!'
+          })
     - name: Build the Docker image
       run: docker build . --file ${{ env.DOCKERFILE }} --tag localbuild/testimage:latest
     - name: Run the Anchore scan action itself with GitHub Advanced Security code scanning integration enabled
@@ -51,8 +62,8 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
+          github.rest.pulls.createComment({
+            issue_number: context.pull.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
             body: '👋 Thanks for reporting!'
