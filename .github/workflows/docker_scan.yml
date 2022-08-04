@@ -1,5 +1,6 @@
 name: Container Image CI
-on: [push]
+on:
+  push:
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,3 +17,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
+
