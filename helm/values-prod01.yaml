@@ -1,83 +1,55 @@
 microservice-chart:
-  namespace: 'payments'
+  namespace: "payments"
   image:
-    repository: 'iopcommonacr.azurecr.io/io-pagopa-payment-updater-ms'
-    tag: '1.1.0'
+    repository: "iopcommonacr.azurecr.io/devops-ms"
+    tag: "1.1.0"
     pullPolicy: Always
   livenessProbe:
     httpGet:
-      path: '/api/v1/health/live'
-      port: 9090
+      path: "/status/live"
+      port: 8080
     initialDelaySeconds: 90
     failureThreshold: 6
     periodSeconds: 10
   readinessProbe:
     httpGet:
-      path: '/api/v1/health/ready'
-      port: 9090
+      path: "/status/ready"
+      port: 8080
     initialDelaySeconds: 90
     failureThreshold: 6
     periodSeconds: 10
   service:
     create: true
-    port: 9090
+    port: 8080
   ingress:
     create: true
-    host: 'weuprod01.payments.internal.io.pagopa.it'
-    # path: '/api/v1/payment/(.*)'
-    path: '/(api/v1/payment/.*)'
+    host: "weuprod01.payments.internal.io.pagopa.it"
+    path: "/api/v1/devops/(.*)"
+    # path: '/(api/v1/payment/.*)'
   resources:
     requests:
-      memory: '256Mi'
-      cpu: '50m'
+      memory: "512Mi"
+      cpu: "200m"
     limits:
-      memory: '512Mi'
-      cpu: '300m'
+      memory: "512Mi"
+      cpu: "200m"
   autoscaling:
     enable: true
-    minReplica: 2
-    maxReplica: 10
+    minReplica: 1
+    maxReplica: 2
     pollingInterval: 30 # seconds
     cooldownPeriod: 300 # seconds
     triggers:
       - type: cpu
         metadata:
           type: Utilization
-          value: '60'
+          value: "70"
   envConfig:
     # required
-    WEBSITE_SITE_NAME: 'io-p-weuprod01-pagopa-payment-updater-ms' # required to show cloud role name in application insights
+    WEBSITE_SITE_NAME: "io-p-weuprod01-devops-ms" # required to show cloud role name in application insights
     # app specific
-    BOOTSTRAP_SERVER_MESSAGE: 'io-p-messages-weu-prod01-evh-ns.servicebus.windows.net:9093' # event-hub write by fn-messages-cqrs
-    BOOTSTRAP_SERVER_PAYMENT: 'pagopa-d-evh-ns01.servicebus.windows.net:9093' # event-hub pagopa
-    BOOTSTRAP_SERVER_PAYMENTUPDATES: 'io-p-payments-weu-prod01-evh-ns.servicebus.windows.net:9093' # event-hub internal
-    CHECKPOINT_SIZE: '10'
-    KAFKA_MESSAGE: 'messages-payments' # event-hub write by fn-messages-cqrs
-    KAFKA_PAYMENTS: 'nodo-dei-pagamenti-biz-evt' # event-hub pagopa
-    KAFKA_PAYMENT_UPDATES: 'io-payment-updater' # event-hub internal
-    MESSAGE_STATUS_ENDPOINT: '' # TODO not used, remove next days
-    MONGO_DATABASE: 'db' # mongodb internal
-    MONGO_COLLECTION_NAME: 'payment' # mongodb internal
-    ENABLE_REST_KEY: 'true' # TODO not used, remove next days
-    PROXY_ENDPOINT: 'https://api.platform.pagopa.it/checkout/auth/payments/v1' # TODO not used, remove next days
-    RESTCALL_INTERVAL_FUNCTION: '10000'
-    RESTCALL_MAX_ATTEMPTS: '3'
-    SASL_MECHANISM_PAYMENT: 'PLAIN'
-    SECURITY_PROTOCOL_PAYMENT: 'SASL_SSL'
-    SCHEDULER_RETRY_ACTIVE: 'true'
-    RETRY_MAX_ATTEMPTS: '10'
-    RETRY_INTERVAL_FUNCTION: '10000'
-    QUARTZ_SCHEDULER_TIMER_NOTIFY: '0 /3 * ? * *'
-    MONGO_RETRY_COLLECTION_NAME: 'payment-retry'
-  envSecret:
-    # required
-    APPLICATIONINSIGHTS_CONNECTION_STRING: 'appinsights-connection-string'
-    # app specific
-    KAFKA_URL_MESSAGE: 'messages-payments-io-p-messages-weu-prod01-evh-jaas-connection-string' # event-hub write by fn-messages-cqrs
-    KAFKA_URL_PAYMENT: 'nodo-dei-pagamenti-biz-evt-pagopa-d-evh-ns01-evh-jaas-connection-string' # event-hub pagopa
-    KAFKA_URL_PAYMENTUPDATES: 'io-payment-updater-io-payment-updater-weu-prod01-evh-jaas-connection-string' # event-hub internal
-    MONGO_DATABASE_URI: 'mongodb-connection-string' # mongodb internal
-    PROXY_ENDPOINT_SUBSCRIPTION_KEY: 'pagopa-proxy-prod-subscription-key' # TODO not used, remove next days
+    MY_APP_COLOR: "red"
+
   keyvault:
-    name: 'io-p-payments-kv'
-    tenantId: '7788edaf-0346-4068-9d79-c868aed15b3d'
+    name: "io-p-payments-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"

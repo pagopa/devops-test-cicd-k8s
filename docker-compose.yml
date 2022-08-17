@@ -1,16 +1,13 @@
-version: '2'
-
+version: "3.8"
 services:
-  app:
-    image: 'microservice:latest'
-    cpus: 1.0
-    mem_limit: "3g"
+  devops-java-springboot-color:
     build:
+      dockerfile: ./Dockerfile
       context: .
-    container_name: app
-    ports:
-      - 9090:9090
+    container_name: devops-java-springboot-color
+    restart: always
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=200MB
-      - JAVA_OPTS=-XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication
+      - MY_APP_COLOR=red
+      - MY_SECRET_VALUE="very secret 1"
+    ports:
+      - "8080:8080"
