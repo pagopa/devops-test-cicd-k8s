@@ -63,7 +63,7 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: add-maven-github-release
+      ref: update-chart-app-version
       endpoint: 'azure-devops-github-ro-payments'
 
 pool:
