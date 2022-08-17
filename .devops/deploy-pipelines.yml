@@ -78,9 +78,8 @@ stages:
     jobs:
       - job: make_release
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        # condition: and(succeeded(), eq(${{ parameters.SKIP_RELEASE }}, False))
         steps:
-          - ${{ if eq(${{ parameters.SKIP_RELEASE }}, False) }}:
+          - ${{ if eq(parameters['SKIP_RELEASE'], False) }}:
               - checkout: self
                 displayName: "Checkout"
                 persistCredentials: true
@@ -92,9 +91,8 @@ stages:
                   gitHubConnection: $(GITHUB_CONNECTION)
       - job: skip_release
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        # condition: and(succeeded(), eq(${{ parameters.SKIP_RELEASE }}, True))
         steps:
-          - ${{ if eq(${{ parameters.SKIP_RELEASE }}, True) }}:
+          - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
               - task: Bash@3
                 displayName: "skip release"
                 inputs:
