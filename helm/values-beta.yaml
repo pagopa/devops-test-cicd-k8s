@@ -2,7 +2,7 @@ microservice-chart:
   namespace: "payments"
   image:
     repository: "iopcommonacr.azurecr.io/devops-test-cicd-k8s"
-    tag: "1.1.0"
+    tag: "1.1.1"
     pullPolicy: Always
   livenessProbe:
     httpGet:
@@ -49,7 +49,6 @@ microservice-chart:
     WEBSITE_SITE_NAME: "io-p-weubeta-devops-test-cicd-k8s" # required to show cloud role name in application insights
     # app specific
     MY_APP_COLOR: "red"
-
   keyvault:
     name: "io-p-payments-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
