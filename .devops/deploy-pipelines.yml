@@ -96,6 +96,9 @@ stages:
         steps:
           - template: templates/maven-github-current-version/template.yaml@pagopaCommons
       - job: deploy_release_decision
+        dependsOn:
+        - make_release
+        - branch_version
         steps:
           - template: templates/deploy-release-decision/template.yaml@pagopaCommons
             parameters:
