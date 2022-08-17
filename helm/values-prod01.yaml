@@ -1,7 +1,7 @@
 microservice-chart:
   namespace: "payments"
   image:
-    repository: "iopcommonacr.azurecr.io/devops-ms"
+    repository: "iopcommonacr.azurecr.io/devops-test-cicd-k8s"
     tag: "1.1.0"
     pullPolicy: Always
   livenessProbe:
@@ -46,7 +46,7 @@ microservice-chart:
           value: "70"
   envConfig:
     # required
-    WEBSITE_SITE_NAME: "io-p-weuprod01-devops-ms" # required to show cloud role name in application insights
+    WEBSITE_SITE_NAME: "io-p-weuprod01-devops-test-cicd-k8s" # required to show cloud role name in application insights
     # app specific
     MY_APP_COLOR: "red"
 
