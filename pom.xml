@@ -10,7 +10,7 @@
   </parent>
   <groupId>it.pagopa.devops</groupId>
   <artifactId>javaspringbootcolor</artifactId>
-  <version>1.8.0</version>
+  <version>1.9.0</version>
   <name>java-springboot-color</name>
   <description>Showcase project for Spring Boot (Devops)</description>
   <properties>
