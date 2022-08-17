@@ -130,9 +130,10 @@ stages:
               targetType: "inline"
               script: |
                 echo "[INFO] the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
-                docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version) .
+                echo "[INFO] Image version: $(deploy_version_decision.value)"
+                docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(deploy_version_decision.value) .
                 docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest .
-                docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version)
+                docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(deploy_version_decision.value)
                 docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest
           - task: Bash@3
             displayName: "docker build and push"
