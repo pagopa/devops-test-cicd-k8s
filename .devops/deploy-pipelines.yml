@@ -63,7 +63,7 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: add-get-version
+      ref: add-deploy-release-decision
       endpoint: "azure-devops-github-ro-payments"
 
 pool:
@@ -90,11 +90,19 @@ stages:
                   gitUsername: $(GIT_USERNAME)
                   gitHubConnection: $(GITHUB_CONNECTION)
           - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
-              - template: templates/node-github-current-version/template.yaml@pagopaCommons
-      - job: branch_release
+              - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+      - job: branch_version
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
-          - template: templates/node-github-current-version/template.yaml@pagopaCommons
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+      - job: deploy_release_decision
+        steps:
+          - template: templates/deploy-release-decision/template.yaml@pagopaCommons
+            parameters:
+              next_version: $[ dependencies.make_release.outputs['next_version.value'] ]
+              current_version: $[ dependencies.make_release.outputs['current_version.value'] ]
+              current_version_branch: $[ dependencies.branch_version.outputs['current_version.value'] ]
+              build_id: $(Build.BuildId)
 
   # Build
   - stage: Build
