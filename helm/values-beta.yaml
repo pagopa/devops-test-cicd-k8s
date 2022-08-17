@@ -2,7 +2,7 @@ microservice-chart:
   namespace: "payments"
   image:
     repository: "iopcommonacr.azurecr.io/devops-test-cicd-k8s"
-    tag: "1.10.0"
+    tag: "1.11.0"
     pullPolicy: Always
   livenessProbe:
     httpGet:
