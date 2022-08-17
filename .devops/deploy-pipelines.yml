@@ -90,11 +90,11 @@ stages:
                   gitUsername: $(GIT_USERNAME)
                   gitHubConnection: $(GITHUB_CONNECTION)
           - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
-              - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+              - template: templates/node-github-current-version/template.yaml@pagopaCommons
       - job: branch_release
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
-          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+          - template: templates/node-github-current-version/template.yaml@pagopaCommons
 
   # Build
   - stage: Build
