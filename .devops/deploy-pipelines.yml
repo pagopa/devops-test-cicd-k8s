@@ -1,53 +1,53 @@
 # Azure DevOps pipeline to release a new version and deploy to production.
 
 variables:
-  NAMESPACE: '$(TF_NAMESPACE)'
-  DOCKER_IMAGE_NAME: '$(TF_DOCKER_IMAGE_NAME)'
-  CONTAINER_REGISTRY_FQDN_PROD: '$(TF_CONTAINER_REGISTRY_FQDN_PROD)'
-  CONTAINER_REGISTRY_SERVICE_CONN_PROD: '$(TF_CONTAINER_REGISTRY_SERVICE_CONN_PROD)'
-  KUBERNETES_SERVICE_CONN_WEU_BETA: '$(TF_KUBERNETES_SERVICE_CONN_WEU_BETA)'
-  KUBERNETES_SERVICE_CONN_WEU_PROD_01: '$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_01)'
-  KUBERNETES_SERVICE_CONN_WEU_PROD_02: '$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_02)'
+  NAMESPACE: "$(TF_NAMESPACE)"
+  DOCKER_IMAGE_NAME: "$(TF_DOCKER_IMAGE_NAME)"
+  CONTAINER_REGISTRY_FQDN_PROD: "$(TF_CONTAINER_REGISTRY_FQDN_PROD)"
+  CONTAINER_REGISTRY_SERVICE_CONN_PROD: "$(TF_CONTAINER_REGISTRY_SERVICE_CONN_PROD)"
+  KUBERNETES_SERVICE_CONN_WEU_BETA: "$(TF_KUBERNETES_SERVICE_CONN_WEU_BETA)"
+  KUBERNETES_SERVICE_CONN_WEU_PROD_01: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_01)"
+  KUBERNETES_SERVICE_CONN_WEU_PROD_02: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_02)"
 
 parameters:
-  - name: 'RELEASE_SEMVER'
-    displayName: 'When packing a release, define the version bump to apply'
+  - name: "RELEASE_SEMVER"
+    displayName: "When packing a release, define the version bump to apply"
     type: string
     values:
       - major
       - minor
       - patch
     default: minor
-  - name: 'FORCE_REPLACE_DOCKER_IMAGE'
-    displayName: 'Force the existing docker image to be replaced'
+  - name: "FORCE_REPLACE_DOCKER_IMAGE"
+    displayName: "Force the existing docker image to be replaced"
     type: boolean
     default: False
     values:
       - False
       - True
-  - name: 'SKIP_RELEASE'
-    displayName: 'Skip release'
+  - name: "SKIP_RELEASE"
+    displayName: "Skip release"
     type: boolean
     default: False
     values:
       - False
       - True
-  - name: 'ENVIRONMENT_WEU_BETA'
-    displayName: 'Deploy to weu-beta'
+  - name: "ENVIRONMENT_WEU_BETA"
+    displayName: "Deploy to weu-beta"
     type: boolean
     default: True
     values:
       - False
       - True
-  - name: 'ENVIRONMENT_WEU_PROD_01'
-    displayName: 'Deploy to weu-prod-01'
+  - name: "ENVIRONMENT_WEU_PROD_01"
+    displayName: "Deploy to weu-prod-01"
     type: boolean
     default: True
     values:
       - False
       - True
-  - name: 'ENVIRONMENT_WEU_PROD_02'
-    displayName: 'Deploy to weu-prod-02'
+  - name: "ENVIRONMENT_WEU_PROD_02"
+    displayName: "Deploy to weu-prod-02"
     type: boolean
     default: False
     values:
@@ -64,10 +64,10 @@ resources:
       type: github
       name: pagopa/azure-pipeline-templates
       ref: update-chart-app-version
-      endpoint: 'azure-devops-github-ro-payments'
+      endpoint: "azure-devops-github-ro-payments"
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
 
 stages:
   # Create a relase
@@ -80,15 +80,34 @@ stages:
         condition: and(succeeded(), eq(${{ parameters.SKIP_RELEASE }}, False))
         steps:
           - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-            - checkout: self
-              displayName: 'Checkout'
-              persistCredentials: true
-            - template: templates/maven-github-release/template.yaml@pagopaCommons
-              parameters:
-                semver: '${{ parameters.RELEASE_SEMVER }}'
-                gitEmail: $(GIT_EMAIL)
-                gitUsername: $(GIT_USERNAME)
-                gitHubConnection: $(GITHUB_CONNECTION)
+              - checkout: self
+                displayName: "Checkout"
+                persistCredentials: true
+              - template: templates/maven-github-release/template.yaml@pagopaCommons
+                parameters:
+                  semver: "${{ parameters.RELEASE_SEMVER }}"
+                  gitEmail: $(GIT_EMAIL)
+                  gitUsername: $(GIT_USERNAME)
+                  gitHubConnection: $(GITHUB_CONNECTION)
+      - job: skip_release
+        condition: and(succeeded(), eq(${{ parameters.SKIP_RELEASE }}, True))
+        steps:
+          - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+              - task: Bash@3
+                displayName: "skip release"
+                inputs:
+                  targetType: "inline"
+                  script: |
+                    echo "[INFO] this is a skip release"
+      - job: branch_release
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        steps:
+          - task: Bash@3
+            displayName: "branch release"
+            inputs:
+              targetType: "inline"
+              script: |
+                echo "[INFO] this is a branch release"
 
   # Build
   - stage: Build
@@ -96,18 +115,18 @@ stages:
     variables:
       next_version: $[ stageDependencies.Release.make_release.outputs['next_version.value'] ]
     jobs:
-      - job: 'Build'
+      - job: "Build"
         steps:
           - task: Docker@2
-            displayName: 'docker login'
+            displayName: "docker login"
             inputs:
-              containerRegistry: '$(CONTAINER_REGISTRY_SERVICE_CONN_PROD)'
-              command: 'login'
+              containerRegistry: "$(CONTAINER_REGISTRY_SERVICE_CONN_PROD)"
+              command: "login"
           - task: Bash@3
-            displayName: 'docker build and push (force)'
+            displayName: "docker build and push (force)"
             condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, True))
             inputs:
-              targetType: 'inline'
+              targetType: "inline"
               script: |
                 echo "[INFO] the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
                 docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(Build.BuildId) .
@@ -117,10 +136,10 @@ stages:
                 docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version)
                 docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest
           - task: Bash@3
-            displayName: 'docker build and push'
+            displayName: "docker build and push"
             condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, False))
             inputs:
-              targetType: 'inline'
+              targetType: "inline"
               script: |
                 # docker will return 0 on success or 1 on failure.
                 docker manifest inspect $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(next_version) > /dev/null
