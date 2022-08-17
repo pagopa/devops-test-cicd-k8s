@@ -118,7 +118,7 @@ stages:
               CURRENT_VERSION_BRANCH: $(current_version_branch)
               CURRENT_VERSION_TAG: $(current_version_tag)
               BUILD_ID: $(Build.BuildId)
-              BUILD_BRANCH: $(Build.SourceBranch)
+              SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
           - task: Docker@2
             displayName: "docker login"
             inputs:
