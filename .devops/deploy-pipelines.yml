@@ -63,7 +63,7 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: update-chart-app-version
+      ref: add-get-version
       endpoint: "azure-devops-github-ro-payments"
 
 pool:
@@ -90,24 +90,11 @@ stages:
                   gitUsername: $(GIT_USERNAME)
                   gitHubConnection: $(GITHUB_CONNECTION)
           - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
-              - checkout: self
-                displayName: "Checkout"
-                persistCredentials: true
-              - task: Bash@3
-                displayName: "skip release"
-                inputs:
-                  targetType: "inline"
-                  script: |
-                    echo "[INFO] this is a skip release"
+              - template: templates/maven-github-current-version/template.yaml@pagopaCommons
       - job: branch_release
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
-          - task: Bash@3
-            displayName: "branch release"
-            inputs:
-              targetType: "inline"
-              script: |
-                echo "[INFO] this is a branch release"
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
 
   # Build
   - stage: Build
