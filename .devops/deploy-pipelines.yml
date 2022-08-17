@@ -89,10 +89,10 @@ stages:
                   gitEmail: $(GIT_EMAIL)
                   gitUsername: $(GIT_USERNAME)
                   gitHubConnection: $(GITHUB_CONNECTION)
-      - job: skip_release
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        steps:
           - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
+              - checkout: self
+                displayName: "Checkout"
+                persistCredentials: true
               - task: Bash@3
                 displayName: "skip release"
                 inputs:
