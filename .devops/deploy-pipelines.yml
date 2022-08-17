@@ -95,17 +95,10 @@ stages:
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
           - template: templates/maven-github-current-version/template.yaml@pagopaCommons
-      # - job: deploy_release_decision
-      #   dependsOn:
-      #   - make_release
-      #   - branch_version
-      #   steps:
-      #     - template: templates/deploy-release-decision/template.yaml@pagopaCommons
-      #       parameters:
-      #         next_version: $[ dependencies.make_release.outputs['next_version.value'] ]
-      #         current_version: $[ dependencies.make_release.outputs['current_version.value'] ]
-      #         current_version_branch: $[ dependencies.branch_version.outputs['current_version.value'] ]
-      #         build_id: $(Build.BuildId)
+      - job: tag_version
+        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+        steps:
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
 
   # Build
   - stage: Build
@@ -114,6 +107,7 @@ stages:
       next_version: $[ stageDependencies.Release.make_release.outputs['next_version.value'] ]
       current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
       current_version_branch: $[ stageDependencies.Release.branch_version.outputs['current_version.value'] ]
+      current_version_tag: $[ stageDependencies.Release.tag_version.outputs['current_version.value'] ]
     jobs:
       - job: "Build"
         steps:
@@ -122,6 +116,7 @@ stages:
               next_version: $(next_version)
               current_version: $(current_version)
               current_version_branch: $(current_version_branch)
+              current_version_tag: $(current_version_tag)
               build_id: $(Build.BuildId)
           - task: Docker@2
             displayName: "docker login"
