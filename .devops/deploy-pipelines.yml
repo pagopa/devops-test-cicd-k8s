@@ -178,7 +178,7 @@ stages:
                   displayName: Helm upgrade
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
                   inputs:
-                    kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_BETA)
+                    kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
                     namespace: $(NAMESPACE)
                     command: upgrade
                     chartType: filepath
@@ -194,7 +194,7 @@ stages:
                   displayName: Helm upgrade
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
                   inputs:
-                    kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_PROD_01)
+                    kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
                     namespace: $(NAMESPACE)
                     command: upgrade
                     chartType: filepath
@@ -210,7 +210,7 @@ stages:
                 #   displayName: Helm upgrade
                 #   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_02 }}, True))
                 #   inputs:
-                #     kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_PROD_02)
+                #     kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_02 }}
                 #     namespace: $(NAMESPACE)
                 #     command: upgrade
                 #     chartType: filepath
