@@ -155,7 +155,7 @@ stages:
                       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
                       helm dep build helm
                 - task: HelmDeploy@0
-                  displayName: Helm upgrade
+                  displayName: Helm upgrade on Beta
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
                   inputs:
                     kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
@@ -171,7 +171,7 @@ stages:
                     arguments: '--timeout 5m0s'
                     overrideValues: microservice-chart.image.tag=$(deploy_version)
                 - task: HelmDeploy@0
-                  displayName: Helm upgrade
+                  displayName: Helm upgrade on PROD_01
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
                   inputs:
                     kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
