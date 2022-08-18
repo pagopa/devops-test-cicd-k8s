@@ -167,13 +167,14 @@ stages:
                   inputs:
                     targetType: 'inline'
                     script: |
+                      ls -la
                       CHART_FILE="helm/Chart.yaml"
                       if [[ -f "$CHART_FILE" ]]; then
                         yq -i ".version = \"$(deploy_version)\"" "$CHART_FILE"
                         yq -i ".appVersion = \"$(deploy_version)\"" "$CHART_FILE"
                       fi
                       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-                      helm dep build $(Pipeline.Workspace)/helm
+                      helm dep build helm
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
