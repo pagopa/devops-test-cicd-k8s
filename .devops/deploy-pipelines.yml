@@ -127,21 +127,6 @@ stages:
               DOCKER_IMAGE_TAG: $(deploy_version_decision.value)
               FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
 
-  # - stage: 'Serving_helm'
-  #   displayName: 'Serving_Helm'
-  #   dependsOn: Build
-  #   jobs:
-  #     - job: Serving_helm
-  #       displayName: Serving_helm
-  #       steps:
-  #         - task: PublishPipelineArtifact@1
-  #           displayName: 'Publish Artifact manifests'
-  #           condition: succeeded()
-  #           inputs:
-  #             targetPath: '$(Build.Repository.LocalPath)/helm'
-  #             artifact: 'helm'
-  #             publishLocation: 'pipeline'
-
   - stage: 'Deploy'
     dependsOn: 'Build'
     variables:
@@ -157,11 +142,6 @@ stages:
               steps:
                 - checkout: self
                   displayName: "Checkout"
-                # - task: DownloadPipelineArtifact@2
-                #   inputs:
-                #     buildType: 'current'
-                #     artifactName: 'helm'
-                #     targetPath: '$(Pipeline.Workspace)/helm'
                 - task: Bash@3
                   displayName: 'prepare helm'
                   inputs:
