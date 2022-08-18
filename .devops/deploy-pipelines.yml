@@ -147,7 +147,7 @@ stages:
     variables:
       deploy_version: $[ stageDependencies.Build.build.outputs['deploy_version_decision.value'] ]
     jobs:
-      - deployment: 'Deploy'
+      - deployment: 'deploy'
         pool:
           name: io-prod-linux
         environment: PROD
