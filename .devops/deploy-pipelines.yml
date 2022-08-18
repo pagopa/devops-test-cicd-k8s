@@ -63,7 +63,7 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: add-docker-build
+      ref: v2.8.0
       endpoint: "azure-devops-github-ro-payments"
 
 pool:
@@ -109,7 +109,7 @@ stages:
       current_version_branch: $[ stageDependencies.Release.branch_version.outputs['current_version.value'] ]
       current_version_tag: $[ stageDependencies.Release.tag_version.outputs['current_version.value'] ]
     jobs:
-      - job: "Build"
+      - job: "build"
         steps:
           - template: templates/deploy-release-decision/template.yaml@pagopaCommons
             parameters:
@@ -126,41 +126,6 @@ stages:
               DOCKER_IMAGE_NAME: $(DOCKER_IMAGE_NAME)
               DOCKER_IMAGE_TAG: $(deploy_version_decision.value)
               FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
-          # - task: Docker@2
-          #   displayName: "docker login"
-          #   inputs:
-          #     containerRegistry: "$(CONTAINER_REGISTRY_SERVICE_CONN_PROD)"
-          #     command: "login"
-          # - task: Bash@3
-          #   displayName: "docker build and push (force)"
-          #   condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, True))
-          #   inputs:
-          #     targetType: "inline"
-          #     script: |
-          #       echo "[INFO] the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
-          #       echo "[INFO] Image version: $(deploy_version_decision.value)"
-          #       docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(deploy_version_decision.value) .
-          #       docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest .
-          #       docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(deploy_version_decision.value)
-          #       docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest
-          # - task: Bash@3
-          #   displayName: "docker build and push"
-          #   condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, False))
-          #   inputs:
-          #     targetType: "inline"
-          #     script: |
-          #       # docker will return 0 on success or 1 on failure.
-          #       echo "[INFO] Image version: $(deploy_version_decision.value)"
-          #       docker manifest inspect $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(deploy_version_decision.value) > /dev/null
-          #       if [ $? -eq 0 ]; then
-          #         echo "[INFO] docker image already exists in the registry, skip build and push"
-          #       else
-          #         echo "[INFO] docker image does not exist in the registry, start build and push"
-          #         docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(deploy_version_decision.value) .
-          #         docker build -t $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest .
-          #         docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):$(deploy_version_decision.value)
-          #         docker push $(CONTAINER_REGISTRY_FQDN_PROD)/$(DOCKER_IMAGE_NAME):latest
-          #       fi
 
   # - stage: 'Serving_helm'
   #   displayName: 'Serving_Helm'
@@ -177,75 +142,83 @@ stages:
   #             artifact: 'helm'
   #             publishLocation: 'pipeline'
 
-  # - stage: 'Deploy'
-  #   dependsOn: 'Serving_helm'
-  #   jobs:
-  #     - deployment: 'Deploy'
-  #       pool:
-  #         name: io-prod-linux
-  #       environment: PROD
-  #       strategy:
-  #         runOnce:
-  #           deploy:
-  #             steps:
-  #               - download: none
-  #               - task: DownloadPipelineArtifact@2
-  #                 inputs:
-  #                   buildType: 'current'
-  #                   artifactName: 'helm'
-  #                   targetPath: '$(Pipeline.Workspace)/helm'
-  #               - task: Bash@3
-  #                 displayName: 'prepare helm'
-  #                 inputs:
-  #                   targetType: 'inline'
-  #                   script: |
-  #                     helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-  #                     helm dep build $(Pipeline.Workspace)/helm
-  #               - task: HelmDeploy@0
-  #                 displayName: Helm upgrade
-  #                 condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
-  #                 inputs:
-  #                   kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_BETA)
-  #                   namespace: $(NAMESPACE)
-  #                   command: upgrade
-  #                   chartType: filepath
-  #                   chartPath: $(Pipeline.Workspace)/helm
-  #                   chartName: $(DOCKER_IMAGE_NAME)
-  #                   releaseName: $(DOCKER_IMAGE_NAME)
-  #                   valueFile: '$(Pipeline.Workspace)/helm/values-beta.yaml'
-  #                   install: true
-  #                   waitForExecution: true
-  #                   arguments: '--timeout 5m0s'
-  #                   overrideValues: microservice-chart.image.tag=$(Build.BuildId)
-  #               - task: HelmDeploy@0
-  #                 displayName: Helm upgrade
-  #                 condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
-  #                 inputs:
-  #                   kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_PROD_01)
-  #                   namespace: $(NAMESPACE)
-  #                   command: upgrade
-  #                   chartType: filepath
-  #                   chartPath: $(Pipeline.Workspace)/helm
-  #                   chartName: $(DOCKER_IMAGE_NAME)
-  #                   releaseName: $(DOCKER_IMAGE_NAME)
-  #                   valueFile: '$(Pipeline.Workspace)/helm/values-prod01.yaml'
-  #                   install: true
-  #                   waitForExecution: true
-  #                   arguments: '--timeout 5m0s'
-  #                   overrideValues: microservice-chart.image.tag=$(Build.BuildId)
-  #               - task: HelmDeploy@0
-  #                 displayName: Helm upgrade
-  #                 condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_02 }}, True))
-  #                 inputs:
-  #                   kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_PROD_02)
-  #                   namespace: $(NAMESPACE)
-  #                   command: upgrade
-  #                   chartType: filepath
-  #                   chartPath: $(Pipeline.Workspace)/helm
-  #                   chartName: $(DOCKER_IMAGE_NAME)
-  #                   releaseName: $(DOCKER_IMAGE_NAME)
-  #                   valueFile: '$(Pipeline.Workspace)/helm/values-prod02.yaml'
-  #                   install: true
-  #                   waitForExecution: true
-  #                   arguments: '--timeout 5m0s'
-  #                   overrideValues: microservice-chart.image.tag=$(Build.BuildId)
+  - stage: 'Deploy'
+    dependsOn: 'Build'
+    variables:
+      deploy_version: $[ stageDependencies.Build.build.outputs['deploy_version_decision.value'] ]
+    jobs:
+      - deployment: 'Deploy'
+        pool:
+          name: io-prod-linux
+        environment: PROD
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: "Checkout"
+                # - task: DownloadPipelineArtifact@2
+                #   inputs:
+                #     buildType: 'current'
+                #     artifactName: 'helm'
+                #     targetPath: '$(Pipeline.Workspace)/helm'
+                - task: Bash@3
+                  displayName: 'prepare helm'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      CHART_FILE="helm/Chart.yaml"
+                      if [[ -f "$CHART_FILE" ]]; then
+                        yq -i ".version = \"$(deploy_version)\"" "$CHART_FILE"
+                        yq -i ".appVersion = \"$(deploy_version)\"" "$CHART_FILE"
+                      fi
+                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+                      helm dep build $(Pipeline.Workspace)/helm
+                - task: HelmDeploy@0
+                  displayName: Helm upgrade
+                  condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
+                  inputs:
+                    kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_BETA)
+                    namespace: $(NAMESPACE)
+                    command: upgrade
+                    chartType: filepath
+                    chartPath: $(Pipeline.Workspace)/helm
+                    chartName: $(DOCKER_IMAGE_NAME)
+                    releaseName: $(DOCKER_IMAGE_NAME)
+                    valueFile: '$(Pipeline.Workspace)/helm/values-beta.yaml'
+                    install: true
+                    waitForExecution: true
+                    arguments: '--timeout 5m0s'
+                    overrideValues: microservice-chart.image.tag=$(deploy_version)
+                - task: HelmDeploy@0
+                  displayName: Helm upgrade
+                  condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
+                  inputs:
+                    kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_PROD_01)
+                    namespace: $(NAMESPACE)
+                    command: upgrade
+                    chartType: filepath
+                    chartPath: $(Pipeline.Workspace)/helm
+                    chartName: $(DOCKER_IMAGE_NAME)
+                    releaseName: $(DOCKER_IMAGE_NAME)
+                    valueFile: '$(Pipeline.Workspace)/helm/values-prod01.yaml'
+                    install: true
+                    waitForExecution: true
+                    arguments: '--timeout 5m0s'
+                    overrideValues: microservice-chart.image.tag=$(deploy_version)
+                # - task: HelmDeploy@0
+                #   displayName: Helm upgrade
+                #   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_02 }}, True))
+                #   inputs:
+                #     kubernetesServiceEndpoint: $(KUBERNETES_SERVICE_CONN_WEU_PROD_02)
+                #     namespace: $(NAMESPACE)
+                #     command: upgrade
+                #     chartType: filepath
+                #     chartPath: $(Pipeline.Workspace)/helm
+                #     chartName: $(DOCKER_IMAGE_NAME)
+                #     releaseName: $(DOCKER_IMAGE_NAME)
+                #     valueFile: '$(Pipeline.Workspace)/helm/values-prod02.yaml'
+                #     install: true
+                #     waitForExecution: true
+                #     arguments: '--timeout 5m0s'
+                #     overrideValues: microservice-chart.image.tag=$(Build.BuildId)
