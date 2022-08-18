@@ -63,7 +63,7 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v2.8.0
+      ref: add-setup-helm-microservice-chart # refs/tags/v2.8.0
       endpoint: "azure-devops-github-ro-payments"
 
 pool:
@@ -142,18 +142,21 @@ stages:
               steps:
                 - checkout: self
                   displayName: "Checkout"
-                - task: Bash@3
-                  displayName: 'prepare helm'
-                  inputs:
-                    targetType: 'inline'
-                    script: |
-                      CHART_FILE="helm/Chart.yaml"
-                      if [[ -f "$CHART_FILE" ]]; then
-                        yq -i ".version = \"$(deploy_version)\"" "$CHART_FILE"
-                        yq -i ".appVersion = \"$(deploy_version)\"" "$CHART_FILE"
-                      fi
-                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-                      helm dep build helm
+                - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
+                  parameters:
+                    DEPLOY_VERSION: $(deploy_version)
+                # - task: Bash@3
+                #   displayName: 'prepare helm'
+                #   inputs:
+                #     targetType: 'inline'
+                #     script: |
+                #       CHART_FILE="helm/Chart.yaml"
+                #       if [[ -f "$CHART_FILE" ]]; then
+                #         yq -i ".version = \"$(deploy_version)\"" "$CHART_FILE"
+                #         yq -i ".appVersion = \"$(deploy_version)\"" "$CHART_FILE"
+                #       fi
+                #       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+                #       helm dep build helm
                 - task: HelmDeploy@0
                   displayName: Helm upgrade on BETA
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
