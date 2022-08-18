@@ -167,7 +167,6 @@ stages:
                   inputs:
                     targetType: 'inline'
                     script: |
-                      ls -la
                       CHART_FILE="helm/Chart.yaml"
                       if [[ -f "$CHART_FILE" ]]; then
                         yq -i ".version = \"$(deploy_version)\"" "$CHART_FILE"
@@ -183,10 +182,10 @@ stages:
                     namespace: $(NAMESPACE)
                     command: upgrade
                     chartType: filepath
-                    chartPath: $(Pipeline.Workspace)/helm
+                    chartPath: helm
                     chartName: $(DOCKER_IMAGE_NAME)
                     releaseName: $(DOCKER_IMAGE_NAME)
-                    valueFile: '$(Pipeline.Workspace)/helm/values-beta.yaml'
+                    valueFile: 'helm/values-beta.yaml'
                     install: true
                     waitForExecution: true
                     arguments: '--timeout 5m0s'
@@ -199,10 +198,10 @@ stages:
                     namespace: $(NAMESPACE)
                     command: upgrade
                     chartType: filepath
-                    chartPath: $(Pipeline.Workspace)/helm
+                    chartPath: helm
                     chartName: $(DOCKER_IMAGE_NAME)
                     releaseName: $(DOCKER_IMAGE_NAME)
-                    valueFile: '$(Pipeline.Workspace)/helm/values-prod01.yaml'
+                    valueFile: 'helm/values-prod01.yaml'
                     install: true
                     waitForExecution: true
                     arguments: '--timeout 5m0s'
