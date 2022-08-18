@@ -117,8 +117,8 @@ stages:
               CURRENT_VERSION: $(current_version)
               CURRENT_VERSION_BRANCH: $(current_version_branch)
               CURRENT_VERSION_TAG: $(current_version_tag)
-              BUILD_NUMBER: $(Build.SourceVersion)
-              SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
+              BUILD_SOURCE_VERSION: $(Build.SourceVersion)
+              BUILD_SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
           - template: templates/docker-release/template.yaml@pagopaCommons
             parameters:
               CONTAINER_REGISTRY_SERVICE_CONN: $(CONTAINER_REGISTRY_SERVICE_CONN_PROD)
