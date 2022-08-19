@@ -63,17 +63,15 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: add-setup-helm-microservice-chart # refs/tags/v2.8.0
+      ref: refs/tags/v2.9.0
       endpoint: "azure-devops-github-ro-payments"
 
 pool:
   vmImage: "ubuntu-latest"
 
 stages:
-  # Create a relase
-  # Activated when ONE OF these are met:
-  # - is on branch master
-  # - is a tag in the form v{version}-RELEASE
+
+  # Release
   - stage: Release
     jobs:
       - job: make_release
@@ -89,6 +87,7 @@ stages:
                   gitEmail: $(GIT_EMAIL)
                   gitUsername: $(GIT_USERNAME)
                   gitHubConnection: $(GITHUB_CONNECTION)
+                  release_branch: master
           - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
               - template: templates/maven-github-current-version/template.yaml@pagopaCommons
       - job: branch_version
@@ -127,6 +126,7 @@ stages:
               DOCKER_IMAGE_TAG: $(deploy_version_decision.value)
               FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
 
+  # Deploy
   - stage: 'Deploy'
     dependsOn: 'Build'
     variables:
@@ -145,18 +145,6 @@ stages:
                 - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
                   parameters:
                     DEPLOY_VERSION: $(deploy_version)
-                # - task: Bash@3
-                #   displayName: 'prepare helm'
-                #   inputs:
-                #     targetType: 'inline'
-                #     script: |
-                #       CHART_FILE="helm/Chart.yaml"
-                #       if [[ -f "$CHART_FILE" ]]; then
-                #         yq -i ".version = \"$(deploy_version)\"" "$CHART_FILE"
-                #         yq -i ".appVersion = \"$(deploy_version)\"" "$CHART_FILE"
-                #       fi
-                #       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-                #       helm dep build helm
                 - task: HelmDeploy@0
                   displayName: Helm upgrade on BETA
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
