@@ -147,7 +147,7 @@ stages:
                     DEPLOY_VERSION: $(deploy_version)
                 - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
                   parameters:
-                    DO_DEPLOY: ${{ parameters.KUBERNETES_SERVICE_CONN_WEU_BETA }}
+                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_BETA }}
                     ENV: BETA
                     KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
                     NAMESPACE: $(NAMESPACE)
