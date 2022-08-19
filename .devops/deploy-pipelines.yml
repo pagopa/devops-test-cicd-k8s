@@ -63,7 +63,7 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v2.9.0
+      ref: add-helm-release # refs/tags/v2.9.0
       endpoint: "azure-devops-github-ro-payments"
 
 pool:
@@ -145,38 +145,56 @@ stages:
                 - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
                   parameters:
                     DEPLOY_VERSION: $(deploy_version)
-                - task: HelmDeploy@0
-                  displayName: Helm upgrade on BETA
-                  condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
-                  inputs:
-                    kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
-                    namespace: $(NAMESPACE)
-                    command: upgrade
-                    chartType: filepath
-                    chartPath: helm
-                    chartName: $(DOCKER_IMAGE_NAME)
-                    releaseName: $(DOCKER_IMAGE_NAME)
-                    valueFile: 'helm/values-beta.yaml'
-                    install: true
-                    waitForExecution: true
-                    arguments: '--timeout 5m0s'
-                    overrideValues: microservice-chart.image.tag=$(deploy_version)
-                - task: HelmDeploy@0
-                  displayName: Helm upgrade on PROD_01
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+                  condition: and(succeeded(), eq(${{ parameters.KUBERNETES_SERVICE_CONN_WEU_BETA }}, True))
+                  parameters:
+                    ENV: BETA
+                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
+                    NAMESPACE: $(NAMESPACE)
+                    APP_NAME: $(DOCKER_IMAGE_NAME)
+                    VALUE_FILE: 'helm/values-beta.yaml'
+                    DEPLOY_VERSION: $(deploy_version)
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
                   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
-                  inputs:
-                    kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
-                    namespace: $(NAMESPACE)
-                    command: upgrade
-                    chartType: filepath
-                    chartPath: helm
-                    chartName: $(DOCKER_IMAGE_NAME)
-                    releaseName: $(DOCKER_IMAGE_NAME)
-                    valueFile: 'helm/values-prod01.yaml'
-                    install: true
-                    waitForExecution: true
-                    arguments: '--timeout 5m0s'
-                    overrideValues: microservice-chart.image.tag=$(deploy_version)
+                  parameters:
+                    ENV: PROD_01
+                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
+                    NAMESPACE: $(NAMESPACE)
+                    APP_NAME: $(DOCKER_IMAGE_NAME)
+                    VALUE_FILE: 'helm/values-prod01.yaml'
+                    DEPLOY_VERSION: $(deploy_version)
+                # - task: HelmDeploy@0
+                #   displayName: Helm upgrade on BETA
+                #   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
+                #   inputs:
+                #     kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
+                #     namespace: $(NAMESPACE)
+                #     command: upgrade
+                #     chartType: filepath
+                #     chartPath: helm
+                #     chartName: $(DOCKER_IMAGE_NAME)
+                #     releaseName: $(DOCKER_IMAGE_NAME)
+                #     valueFile: 'helm/values-beta.yaml'
+                #     install: true
+                #     waitForExecution: true
+                #     arguments: '--timeout 5m0s'
+                #     overrideValues: microservice-chart.image.tag=$(deploy_version)
+                # - task: HelmDeploy@0
+                #   displayName: Helm upgrade on PROD_01
+                #   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
+                #   inputs:
+                #     kubernetesServiceEndpoint: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
+                #     namespace: $(NAMESPACE)
+                #     command: upgrade
+                #     chartType: filepath
+                #     chartPath: helm
+                #     chartName: $(DOCKER_IMAGE_NAME)
+                #     releaseName: $(DOCKER_IMAGE_NAME)
+                #     valueFile: 'helm/values-prod01.yaml'
+                #     install: true
+                #     waitForExecution: true
+                #     arguments: '--timeout 5m0s'
+                #     overrideValues: microservice-chart.image.tag=$(deploy_version)
                 # - task: HelmDeploy@0
                 #   displayName: Helm upgrade on PROD_02
                 #   condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_02 }}, True))
