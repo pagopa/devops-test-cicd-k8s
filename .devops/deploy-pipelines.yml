@@ -146,8 +146,8 @@ stages:
                   parameters:
                     DEPLOY_VERSION: $(deploy_version)
                 - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
-                  condition: and(succeeded(), eq(${{ parameters.KUBERNETES_SERVICE_CONN_WEU_BETA }}, True))
                   parameters:
+                    DO_DEPLOY: ${{ parameters.KUBERNETES_SERVICE_CONN_WEU_BETA }}
                     ENV: BETA
                     KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
                     NAMESPACE: $(NAMESPACE)
@@ -155,8 +155,8 @@ stages:
                     VALUE_FILE: 'helm/values-beta.yaml'
                     DEPLOY_VERSION: $(deploy_version)
                 - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
-                  condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
                   parameters:
+                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_PROD_01 }}
                     ENV: PROD_01
                     KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
                     NAMESPACE: $(NAMESPACE)
